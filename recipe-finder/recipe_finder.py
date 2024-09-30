@@ -1,50 +1,49 @@
 import requests
 
-# Step 1: Set up API key and URL
-api_key = “Your API key”
+# Step 1: Set up my API key
+api_key = "your_api_key_here"
 
-# Step 2: Get ingredients from the User
-ingredients = input("Enter the ingredients you have (separated by commas): ")
-
-# Step 3: fetch recipe suggestions based on ingredients
+# Step 2: Get recipe details by entering ingredients
+ingredients = input("Enter ingredients (comma-separated): ")
 url = f"https://api.spoonacular.com/recipes/findByIngredients?ingredients={ingredients}&apiKey={api_key}"
+
+# Step 3: Fetch recipes
 response = requests.get(url)
 
-# Step 4: Check the request was successful
 if response.status_code == 200:
-  recipes = response.json()
+    recipes = response.json()
 
-  # Step 5: Display recipe titles and ids
-  if recipes:
-    for recipe in recipes:
-      print(f"Recipe Title: {recipe['title']}")
-      print(f"Recipe ID: {recipe['id']}")
-      print("--------------------")
+    if recipes:
+        print("Recipes found:")
+        print("____________")
+        for recipe in recipes:
+            print(f"Title: {recipe['title']}, ID: {recipe['id']}")
+            print("-" * 40)
 
-  else:
-    print("No recipes found.")
+        # Step 4: Get recipe ID from the user
+        recipe_id = input("Enter the ID of the recipe you want to get more details: ")
 
-   # Ask for the user to choose a recipe
-  recipe_id = input("Enter the ID of the recipe you want to get more details: ")
+        # Step 5: Fetch detailed recipe information using the recipe ID
+        detail_url = f"https://api.spoonacular.com/recipes/{recipe_id}/information?apiKey={api_key}"
+        detail_response = requests.get(detail_url)
 
-   # Step 6: fetch recipe information using recipe id
-  detail_url = f"https://api.spoonacular.com/recipes/{recipe_id}/information?apiKey={api_key}"
-  detail_response = requests.get(url)
+        if detail_response.status_code == 200:
+            recipe_details = detail_response.json()
 
-  if  detail_response.status_code == 200:
-    # parse the JSON response
-     recipe_details = detail_response.json()
-     
+            # Fetch available data
+            title = recipe_details.get("title", "No title available.")
+            image = recipe_details.get("image", "No image available.")
+            servings = recipe_details.get("servings", "No servings information available.")
+            instructions = recipe_details.get("instructions", "No instructions available.")
 
-    # Display recipe information
-     amount = recipe_details.get("amount", "No amount available.")
-     cooking_time = recipe_details.get("readyInMinutes", "No cooking time available.")
-     servings = recipe_details.get("servings", "No servings available.")
-
-   #   Display the recipe details
-     print(recipe_details)
-     print("cooking time: {cooking_time} minutes")
-     print("servings: {servings}")
-     print("instructions: {instructions}")
-else: 
-    print("failed to get details for recipe id {recipe_id}. status code: {detail_response.status_code}")
+            # Print available details
+            print(f"\nTitle: {title}")
+            print(f"Image URL: {image}")
+            print(f"Servings: {servings}")
+            print(f"Instructions: {instructions if instructions else 'No instructions available.'}")
+        else:
+            print(f"Failed to get details for Recipe id {recipe_id}. Status code: {detail_response.status_code}")
+    else:
+        print("No recipes found for the given ingredients.")
+else:
+    print(f"Failed to reach the URL. Status code: {response.status_code}")
